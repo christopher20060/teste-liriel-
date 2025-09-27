@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Será que a gente combina? — Christopher & Liriel</title>
+<style>
+  :root{
+    --bg:#fffdf9;
+    --card:#fff;
+    --accent:#caa176;
+    --muted:#7b6b5a;
+    --soft:#f6efe6;
+    --radius:14px;
+    --shadow: 0 6px 20px rgba(14,14,20,0.08);
+    font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    background:linear-gradient(180deg,var(--bg),#fbf8f4);
+    color:#2c2a29;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    padding:28px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    min-height:100vh;
+  }
+  .wrap{
+    width:100%;
+    max-width:720px;
+  }
+  header{
+    background:var(--card);
+    padding:22px;
+    border-radius:var(--radius);
+    box-shadow:var(--shadow);
+    display:flex;
+    gap:16px;
+    align-items:center;
+    margin-bottom:18px;
+  }
+  .avatar{
+    width:72px;
+    height:72px;
+    border-radius:12px;
+    background:linear-gradient(135deg,#fff,#f9efe0);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-weight:700;
+    color:var(--accent);
+    font-size:20px;
+    border:1px solid #f0e6da;
+  }
+  h1{font-size:20px;margin:0}
+  p.lead{margin:4px 0 0;color:var(--muted)}
+  .card{
+    background:var(--card);
+    padding:20px;
+    border-radius:14px;
+    box-shadow:var(--shadow);
+  }
+  .question{
+    margin:14px 0;
+  }
+  .q-title{
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  .options{display:flex;flex-direction:column;gap:8px}
+  .opt{
+    background:var(--soft);
+    border-radius:10px;
+    padding:10px 12px;
+    cursor:pointer;
+    border:1px solid transparent;
+    transition:all .15s;
+    color:var(--muted);
+  }
+  .opt:hover{transform:translateY(-3px); box-shadow:0 10px 20px rgba(15,15,20,0.04)}
+  .opt.selected{
+    background:linear-gradient(90deg,#fff7ef,#fff3e8);
+    border-color:var(--accent);
+    color:#2c2a29;
+    font-weight:600;
+  }
+  .controls{
+    display:flex;
+    gap:8px;
+    justify-content:space-between;
+    margin-top:14px;
+  }
+  button{
+    background:var(--accent);
+    color:#fff;
+    border:0;
+    padding:10px 14px;
+    border-radius:10px;
+    cursor:pointer;
+    font-weight:600;
+  }
+  button.secondary{
+    background:transparent;
+    border:1px solid #efe2d0;
+    color:var(--muted);
+    font-weight:600;
+  }
+  .result{
+    text-align:center;
+    padding:18px;
+    border-radius:12px;
+  }
+  .verse{
+    margin-top:12px;
+    font-size:14px;
+    color:var(--muted);
+  }
+  .share{
+    margin-top:12px;
+    display:flex;
+    gap:8px;
+    justify-content:center;
+  }
+  .small{font-size:13px;color:var(--muted)}
+  footer{margin-top:14px;text-align:center;color:var(--muted);font-size:13px}
+  .names{color:var(--accent);font-weight:700}
+  .music-toggle{display:flex;align-items:center;gap:8px}
+  @media(max-width:520px){
+    header{flex-direction:column;align-items:flex-start}
+    .avatar{width:60px;height:60px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="avatar">C & L</div>
+    <div>
+      <h1>Será que a gente combina?</h1>
+      <p class="lead">Um joguinho leve pra Liriel — só pra gente sorrir um pouco ✨</p>
+    </div>
+    <div style="margin-left:auto" class="music-toggle">
+      <label class="small">Música</label>
+      <input id="toggleMusic" type="checkbox" aria-label="Música de fundo">
+    </div>
+  </header>
+
+  <div class="card" id="quizCard">
+    <div id="intro">
+      <p class="small">Oi Liriel — é só um teste pequeno e divertido que o Christopher fez. Responde com sinceridade (ou com humor). <span class="names">Christopher → Liriel</span></p>
+      <p style="margin-top:10px" class="small"><em>Sem pressão. Só um sorriso.</em></p>
+      <button id="startBtn" style="margin-top:12px">Começar o teste</button>
+    </div>
+
+    <div id="quiz" style="display:none">
+      <!-- questions injected by JS -->
+    </div>
+
+    <div id="result" style="display:none">
+      <div class="result">
+        <h2 id="resultTitle"></h2>
+        <p id="resultText"></p>
+        <p class="verse" id="verseText"></p>
+        <div class="share">
+          <button id="retry" class="secondary">Refazer</button>
+          <button id="copyLink">Copiar link deste teste</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="small">Feito com carinho por <span class="names">Christopher</span> — uma forma leve de dizer que eu gosto de você.</div>
+  </footer>
+</div>
+
+<audio id="bgAudio" loop src=""></audio>
+
+<script>
+  // --- Configurações ---
+  const USER = { you: "Christopher", her: "Liriel" };
+  const TITLE = "Será que a gente combina?";
+  const QUESTIONS = [
+    { q: "Quando a gente conversa, é tipo:", opts: ["Tranquilo, parece que a gente se entende fácil.", "Engraçado, sempre sai uma risada.", "Diferente… mas de um jeito bom."] },
+    { q: "Se a gente fosse um par, seria:", opts: ["Café e conversa boa ☕", "Risadas e zoeiras 😅", "Paciência e calma 🌙"] },
+    { q: "Quando você lembra de mim, o que vem primeiro?", opts: ["Uma lembrança boa", "Alguma piada minha (das ruins mesmo 😂)", "Um “vai ver a gente se encontra de novo”"] },
+    { q: "O que mais combina com a gente:", opts: ["Uma amizade que pode crescer com o tempo", "Duas pessoas tentando entender o coração", "Um começo leve, sem pressa"] },
+    { q: "Se alguém perguntasse “o que você acha do " + USER.you + "?”, você diria:", opts: ["“Ele é legal, gosto de conversar com ele.”", "“Não sei… mas tem algo nele.”", "“Ah, pergunta pra Deus aí 😅”"] },
+  ];
+
+  const RESULTS = {
+    A: {
+      title: "Boa conexão 🌻",
+      text: "Vocês têm uma sintonia tranquila — daquelas que fazem bem. Sem pressão: só aproveita o tempo e vê no que dá.",
+      verse: "“Melhor serem dois do que um...” — Eclesiastes 4:9-10"
+    },
+    B: {
+      title: "Curiosidade no ar 🌙",
+      text: "Tem algo leve e divertido entre vocês. Pode ser só o começo — e começar com risada já é ótimo.",
+      verse: "“O amor tudo suporta, a fé é paciente...” — 1 Coríntios 13:7"
+    },
+    C: {
+      title: "Deixa o tempo cuidar ☁️",
+      text: "O coração dela está se organizando — tá tudo bem. Paciência e presença costumam dizer muito.",
+      verse: "“Melhor dois do que um... se um cair, o outro levanta.” — Eclesiastes 4:9-10"
+    }
+  };
+
+  // --- UI e lógica ---
+  const quizEl = document.getElementById("quiz");
+  const startBtn = document.getElementById("startBtn");
+  const intro = document.getElementById("intro");
+  const resultEl = document.getElementById("result");
+  const bgAudio = document.getElementById("bgAudio");
+
+  // Optional: small built-in gentle melody (base64 small mp3 not included to keep file small)
+  // You can set bgAudio.src to a URL of an mp3 if you want to enable music.
+
+  document.getElementById("toggleMusic").addEventListener("change", (e)=>{
+    if(e.target.checked){
+      if(!bgAudio.src) {
+        alert("Para ativar a música, envie-me o arquivo .mp3 ou cole um link direto para um arquivo de áudio (ex: do seu Google Drive com permissão pública).");
+        e.target.checked = false;
+        return;
+      }
+      bgAudio.play();
+    } else {
+      bgAudio.pause();
+      bgAudio.currentTime = 0;
+    }
+  });
+
+  startBtn.addEventListener("click", ()=> {
+    intro.style.display = "none";
+    renderQuestions();
+    quizEl.style.display = "block";
+  });
+
+  function renderQuestions(){
+    quizEl.innerHTML = "";
+    QUESTIONS.forEach((item, idx)=>{
+      const qWrap = document.createElement("div");
+      qWrap.className = "question";
+      qWrap.innerHTML = `<div class="q-title">${idx+1}. ${item.q}</div><div class="options" data-q="${idx}"></div>`;
+      const optsEl = qWrap.querySelector(".options");
+      item.opts.forEach((o, i)=>{
+        const btn = document.createElement("div");
+        btn.className = "opt";
+        btn.tabIndex = 0;
+        btn.textContent = o;
+        btn.dataset.val = String.fromCharCode(65 + i); // A, B, C
+        btn.addEventListener("click", ()=> selectOption(idx, btn));
+        btn.addEventListener("keydown", (ev)=>{ if(ev.key==="Enter") selectOption(idx, btn) });
+        optsEl.appendChild(btn);
+      });
+      quizEl.appendChild(qWrap);
+    });
+
+    const controls = document.createElement("div");
+    controls.className = "controls";
+    controls.innerHTML = `<div class="small">Responda com sinceridade — ou com humor 😄</div><div><button id="seeResult">Ver resultado</button></div>`;
+    quizEl.appendChild(controls);
+    document.getElementById("seeResult").addEventListener("click", computeResult);
+  }
+
+  const answers = new Array(QUESTIONS.length).fill(null);
+  function selectOption(qIdx, btn){
+    // deselect previous
+    const optBox = btn.parentElement;
+    Array.from(optBox.children).forEach(c=>c.classList.remove("selected"));
+    btn.classList.add("selected");
+    answers[qIdx] = btn.dataset.val;
+  }
+
+  function computeResult(){
+    // ensure at least one answer per question (if not answered, treat as neutral C)
+    for(let i=0;i<answers.length;i++){
+      if(!answers[i]) answers[i] = "C";
+    }
+    const counts = {A:0,B:0,C:0};
+    answers.forEach(v=> counts[v]++);
+    let winner = "A";
+    if(counts.B>counts[winner]) winner="B";
+    if(counts.C>counts[winner]) winner="C";
+    showResult(winner);
+  }
+
+  function showResult(key){
+    quizEl.style.display = "none";
+    resultEl.style.display = "block";
+    document.getElementById("resultTitle").textContent = RESULTS[key].title;
+    document.getElementById("resultText").textContent = RESULTS[key].text;
+    document.getElementById("verseText").textContent = RESULTS[key].verse;
+  }
+
+  document.getElementById("retry").addEventListener("click", ()=>{
+    // reset
+    answers.fill(null);
+    const opts = document.querySelectorAll(".opt");
+    opts.forEach(o=>o.classList.remove("selected"));
+    resultEl.style.display = "none";
+    intro.style.display = "block";
+    quizEl.style.display = "none";
+  });
+
+  document.getElementById("copyLink").addEventListener("click", async ()=>{
+    try{
+      const url = window.location.href;
+      await navigator.clipboard.writeText(url);
+      alert("Link copiado! Agora você pode enviar para a Liriel.");
+    }catch(e){
+      alert("Não foi possível copiar automaticamente. Copie o link da barra de endereço.");
+    }
+  });
+
+  // Accessibility: let users press Enter on start
+  startBtn.addEventListener("keydown",(e)=>{ if(e.key==="Enter") startBtn.click() });
+
+  // Friendly small auto-fill: if someone opens with ?name=Liriel in URL, personalize
+  (function personalizeFromURL(){
+    const p = new URLSearchParams(location.search);
+    const her = p.get("her");
+    const you = p.get("you");
+    if(her) {
+      USER.her = decodeURIComponent(her);
+      document.querySelector(".lead").textContent = `Um joguinho leve pra ${USER.her} — só pra gente sorrir um pouco ✨`;
+    }
+    if(you) USER.you = decodeURIComponent(you);
+  })();
+</script>
+</body>
+</html>
